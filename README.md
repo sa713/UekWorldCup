@@ -31,6 +31,8 @@
 ├── init_db.py
 ├── requirements.txt
 ├── .env.example
+├── data/
+│   └── worldcup.sqlite3
 ├── scripts/
 │   └── smoke_test.py
 ├── tests/
@@ -80,14 +82,16 @@ Smoke-test создает временную базу, добавляет пол
 ## Как внести матч
 
 ```sql
-INSERT INTO matches (team1, team2, stage, match_type, kickoff_time, status)
-VALUES ('Аргентина', 'Франция', 'Групповой этап', 'group', '2026-06-14T21:00:00+03:00', 'scheduled');
+INSERT INTO matches (team1, team2, stage, group_name, match_type, kickoff_time, status)
+VALUES ('Аргентина', 'Франция', 'Групповой этап', 'A', 'group', '2026-06-14T21:00:00+03:00', 'scheduled');
 ```
 
 `match_type`:
 
 - `group` — доступны победа команды 1, ничья, победа команды 2;
 - `playoff` — доступны только победа команды 1 или победа команды 2.
+
+Для группового этапа в `group_name` хранится группа матча из расписания. Для плей-офф это поле остается пустым или `NULL`.
 
 ## Как внести результат
 

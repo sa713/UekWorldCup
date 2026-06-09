@@ -27,6 +27,7 @@ python init_db.py
 | `team1` | TEXT | Команда 1 |
 | `team2` | TEXT | Команда 2 |
 | `stage` | TEXT | Стадия турнира |
+| `group_name` | TEXT | Группа матча, например `A`; для плей-офф `NULL` |
 | `match_type` | TEXT | `group` или `playoff` |
 | `kickoff_time` | TEXT | Время начала в ISO-формате |
 | `status` | TEXT | `scheduled`, `locked`, `finished`, `scored` |
@@ -111,8 +112,8 @@ scheduled -> locked -> finished -> scored
 Групповой матч:
 
 ```sql
-INSERT INTO matches (team1, team2, stage, match_type, kickoff_time, status)
-VALUES ('Аргентина', 'Франция', 'Групповой этап', 'group', '2026-06-14T21:00:00+03:00', 'scheduled');
+INSERT INTO matches (team1, team2, stage, group_name, match_type, kickoff_time, status)
+VALUES ('Аргентина', 'Франция', 'Групповой этап', 'A', 'group', '2026-06-14T21:00:00+03:00', 'scheduled');
 ```
 
 Плей-офф:

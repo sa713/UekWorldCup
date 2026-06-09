@@ -64,6 +64,7 @@ class Database:
                 team1 TEXT NOT NULL,
                 team2 TEXT NOT NULL,
                 stage TEXT NOT NULL,
+                group_name TEXT,
                 match_type TEXT NOT NULL CHECK (match_type IN ('group', 'playoff')),
                 kickoff_time TEXT NOT NULL,
                 status TEXT NOT NULL DEFAULT 'scheduled'
@@ -147,7 +148,15 @@ class Database:
             END;
             """
         )
+        await self._ensure_matches_group_name_column()
         await conn.commit()
+
+    async def _ensure_matches_group_name_column(self) -> None:
+        conn = self._connection()
+        async with conn.execute("PRAGMA table_info(matches)") as cursor:
+            columns = {str(row["name"]) for row in await cursor.fetchall()}
+        if "group_name" not in columns:
+            await conn.execute("ALTER TABLE matches ADD COLUMN group_name TEXT")
 
     @staticmethod
     def _dict(row: aiosqlite.Row | None) -> dict[str, Any] | None:

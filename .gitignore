@@ -6,9 +6,10 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-data/
+data/*
 *.sqlite
 *.sqlite3
 *.db
+!data/worldcup.sqlite3
 
 .DS_Store

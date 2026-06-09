@@ -29,8 +29,10 @@ def format_match_card(match: dict, tz, user_prediction: str | None = None) -> st
     lines = [
         f"{match['team1']} — {match['team2']}",
         f"Стадия: {match['stage']}",
-        f"Начало: {format_moscow_datetime(match['kickoff_time'], tz)} МСК",
     ]
+    if match.get("match_type") == "group" and match.get("group_name"):
+        lines.append(f"Группа: {match['group_name']}")
+    lines.append(f"Начало: {format_moscow_datetime(match['kickoff_time'], tz)} МСК")
     if user_prediction is not None:
         lines.append(f"Ваш прогноз: {prediction_label(user_prediction, match)}")
     return "\n".join(lines)
@@ -50,6 +52,11 @@ def format_my_predictions(rows: list[dict], tz) -> str:
                     f"{format_moscow_datetime(row['kickoff_time'], tz)} МСК",
                     f"{row['team1']} — {row['team2']}",
                     f"Стадия: {row['stage']}",
+                    *(
+                        [f"Группа: {row['group_name']}"]
+                        if row.get("match_type") == "group" and row.get("group_name")
+                        else []
+                    ),
                     f"Прогноз: {label}",
                 ]
             )
