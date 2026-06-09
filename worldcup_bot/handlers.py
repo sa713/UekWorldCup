@@ -136,11 +136,14 @@ async def show_upcoming_matches(message: Message, db: Database, config: Config) 
 
 
 @router.message(F.text == MAIN_MENU_MY_PREDICTIONS)
-async def show_my_predictions(message: Message, db: Database) -> None:
+async def show_my_predictions(message: Message, db: Database, config: Config) -> None:
     if await _ensure_registered(message, db) is None:
         return
 
-    rows = await db.list_future_matches_with_predictions(message.from_user.id)
+    rows = await db.list_future_matches_with_predictions(
+        message.from_user.id,
+        days=config.upcoming_days,
+    )
     await message.answer(format_my_predictions(rows, db.tz))
 
 

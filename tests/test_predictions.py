@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from datetime import timedelta
+
 import aiosqlite
 import pytest
 
 from worldcup_bot.constants import LOCKED
 from worldcup_bot.db import PredictionError
+from worldcup_bot.timeutils import now_in_tz
 
 from tests.helpers import PAST_KICKOFF, add_match, finish_match
 
@@ -68,3 +71,29 @@ async def test_prediction_after_kickoff_is_rejected_and_match_gets_locked(db):
 
     assert (await db.get_match(match_id))["status"] == LOCKED
     assert await db.get_user_prediction(2201, match_id) is None
+
+
+@pytest.mark.asyncio
+async def test_future_predictions_are_limited_by_days(db):
+    now = now_in_tz(db.tz)
+    inside_match_id = await add_match(
+        db,
+        team1="Ближняя команда 1",
+        team2="Ближняя команда 2",
+        kickoff_time=(now + timedelta(days=1)).isoformat(timespec="seconds"),
+    )
+    outside_match_id = await add_match(
+        db,
+        team1="Дальняя команда 1",
+        team2="Дальняя команда 2",
+        kickoff_time=(now + timedelta(days=3)).isoformat(timespec="seconds"),
+    )
+    await db.register_user(2301, "Игрок")
+
+    await db.save_prediction(2301, inside_match_id, "team1")
+    await db.save_prediction(2301, outside_match_id, "team2")
+
+    rows = await db.list_future_matches_with_predictions(2301, days=2)
+
+    assert [row["id"] for row in rows] == [inside_match_id]
+    assert rows[0]["user_prediction"] == "team1"
