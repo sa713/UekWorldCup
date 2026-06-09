@@ -31,6 +31,12 @@
 ├── init_db.py
 ├── requirements.txt
 ├── .env.example
+├── scripts/
+│   └── smoke_test.py
+├── tests/
+│   ├── test_leaderboard.py
+│   ├── test_predictions.py
+│   └── test_scoring.py
 ├── worldcup_bot/
 │   ├── config.py
 │   ├── constants.py
@@ -59,6 +65,17 @@ python bot.py
 ```
 
 Перед запуском заполните в `.env` минимум `BOT_TOKEN`, `CHANNEL_ID` и `TIMEZONE`.
+
+## Локальная проверка без Telegram
+
+Smoke-test и pytest-проверки работают только с временной SQLite-базой. Они не требуют Telegram-токена, не читают `.env` и не отправляют сообщения.
+
+```bash
+python scripts/smoke_test.py
+pytest
+```
+
+Smoke-test создает временную базу, добавляет пользователей, групповой матч и матч плей-офф, записывает прогнозы, вносит результаты, запускает начисление очков и печатает итоговый рейтинг.
 
 ## Как внести матч
 
