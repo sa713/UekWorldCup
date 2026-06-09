@@ -10,6 +10,14 @@ from worldcup_bot.constants import (
 from worldcup_bot.timeutils import format_moscow_datetime
 
 
+COMPACT_PREDICTION_LABELS = {
+    PREDICTION_TEAM1: "победа 1",
+    PREDICTION_TEAM2: "победа 2",
+    PREDICTION_DRAW: "ничья",
+    PREDICTION_NONE: "без прогноза",
+}
+
+
 def prediction_label(prediction: str | None, match: dict | None = None) -> str:
     if prediction is None:
         return "Не сделан"
@@ -25,6 +33,12 @@ def prediction_label(prediction: str | None, match: dict | None = None) -> str:
     return SHORT_PREDICTION_LABELS.get(prediction, prediction)
 
 
+def compact_prediction_label(prediction: str | None) -> str:
+    if prediction is None:
+        return "не выбран"
+    return COMPACT_PREDICTION_LABELS.get(prediction, "не выбран")
+
+
 def format_match_card(match: dict, tz, user_prediction: str | None = None) -> str:
     lines = [
         f"{match['team1']} — {match['team2']}",
@@ -38,29 +52,17 @@ def format_match_card(match: dict, tz, user_prediction: str | None = None) -> st
     return "\n".join(lines)
 
 
-def format_my_predictions(rows: list[dict], tz) -> str:
+def format_my_predictions(rows: list[dict], tz=None) -> str:
     if not rows:
         return "Будущих матчей пока нет."
 
-    lines = ["Ваши прогнозы на будущие матчи:"]
-    for row in rows:
-        label = prediction_label(row.get("user_prediction"), row)
-        lines.append(
-            "\n".join(
-                [
-                    "",
-                    f"{format_moscow_datetime(row['kickoff_time'], tz)} МСК",
-                    f"{row['team1']} — {row['team2']}",
-                    f"Стадия: {row['stage']}",
-                    *(
-                        [f"Группа: {row['group_name']}"]
-                        if row.get("match_type") == "group" and row.get("group_name")
-                        else []
-                    ),
-                    f"Прогноз: {label}",
-                ]
-            )
-        )
+    display_rows = rows[:50]
+    lines = ["Мои прогнозы:"]
+    if len(rows) > 50:
+        lines.append("Показаны ближайшие 50 матчей.")
+    for row in display_rows:
+        label = compact_prediction_label(row.get("user_prediction"))
+        lines.append(f"{row['team1']} – {row['team2']} – {label}")
     return "\n".join(lines)
 
 
