@@ -25,6 +25,10 @@ class PredictionError(ValueError):
     """Raised when a prediction cannot be saved."""
 
 
+class MatchResultError(ValueError):
+    """Raised when a match result cannot be updated."""
+
+
 class Database:
     def __init__(self, path: str | Path, timezone_name: str) -> None:
         self.path = Path(path)
@@ -198,6 +202,20 @@ class Database:
         conn = self._connection()
         async with conn.execute("SELECT * FROM matches WHERE id = ?", (match_id,)) as cursor:
             return self._dict(await cursor.fetchone())
+
+    async def list_matches_for_result_entry(self, *, limit: int = 20) -> list[dict[str, Any]]:
+        conn = self._connection()
+        async with conn.execute(
+            """
+            SELECT *
+            FROM matches
+            WHERE status IN ('locked', 'finished')
+            ORDER BY kickoff_time DESC, id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ) as cursor:
+            return [dict(row) for row in await cursor.fetchall()]
 
     async def list_upcoming_matches(self, *, days: int, limit: int = 20) -> list[dict[str, Any]]:
         conn = self._connection()
@@ -423,6 +441,53 @@ class Database:
             scored_matches.append({"match_id": match["id"], "events": len(event_rows)})
 
         return scored_matches
+
+    async def update_match_result(self, match_id: int, score: str, winner: str) -> dict[str, Any]:
+        match = await self.get_match(match_id)
+        if match is None:
+            raise MatchResultError("Матч не найден.")
+        if match["status"] == SCORED:
+            raise MatchResultError("Матч уже обработан, результат через бота изменить нельзя.")
+        if match["match_type"] == PLAYOFF and winner == PREDICTION_DRAW:
+            raise MatchResultError("Для плей-офф ничья невозможна. Укажите итоговый счёт с победителем.")
+
+        conn = self._connection()
+        await conn.execute(
+            """
+            UPDATE matches
+            SET status = ?,
+                score = ?,
+                winner = ?,
+                result_recorded_at = NULL,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (FINISHED, score, winner, iso_now(self.tz), match_id),
+        )
+        await conn.commit()
+        updated = await self.get_match(match_id)
+        if updated is None:
+            raise RuntimeError("Match disappeared after result update")
+        return updated
+
+    async def reset_test_data(self) -> None:
+        conn = self._connection()
+        await conn.execute("DELETE FROM score_events")
+        await conn.execute("DELETE FROM predictions")
+        await conn.execute("DELETE FROM users")
+        await conn.execute("DELETE FROM settings")
+        await conn.execute(
+            """
+            UPDATE matches
+            SET status = ?,
+                score = NULL,
+                winner = NULL,
+                result_recorded_at = NULL,
+                updated_at = ?
+            """,
+            (SCHEDULED, iso_now(self.tz)),
+        )
+        await conn.commit()
 
     async def leaderboard(self) -> list[dict[str, Any]]:
         conn = self._connection()

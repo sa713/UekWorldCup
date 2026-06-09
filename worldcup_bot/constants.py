@@ -33,3 +33,8 @@ VALID_PREDICTIONS = {
 MAIN_MENU_UPCOMING = "Ближайшие матчи"
 MAIN_MENU_MY_PREDICTIONS = "Мои прогнозы"
 MAIN_MENU_RATING = "Рейтинг"
+
+# Temporary/test admin actions for local tournament dry runs.
+ADMIN_MENU_ENTER_RESULT = "Админ: внести результат"
+ADMIN_MENU_PUBLISH_RATING = "Админ: посчитать и опубликовать рейтинг"
+ADMIN_MENU_CLEAR_DB = "Админ: очистить БД"

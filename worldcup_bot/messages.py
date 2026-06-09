@@ -84,6 +84,18 @@ def format_result_line(match: dict) -> str:
     return f"- {match['team1']} {match['score']} {match['team2']}"
 
 
+def format_admin_match_option(match: dict, tz) -> str:
+    score = match.get("score") or "не внесен"
+    return "\n".join(
+        [
+            f"#{match['id']} {match['team1']} — {match['team2']}",
+            f"Начало: {format_moscow_datetime(match['kickoff_time'], tz)} МСК",
+            f"Статус: {match['status']}",
+            f"Счет: {score}",
+        ]
+    )
+
+
 def format_channel_summary(results: list[dict], leaderboard: list[dict]) -> str:
     lines = ["Ежедневная сводка"]
 

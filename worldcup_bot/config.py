@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 class Config:
     bot_token: str
     channel_id: int | str | None
+    admin_username: str | None
     timezone: str
     database_path: Path
     daily_users_hour: int
@@ -49,6 +50,7 @@ def load_config(env_file: str | Path = ".env", *, require_bot_token: bool = True
     return Config(
         bot_token=bot_token,
         channel_id=_get_channel_id(os.getenv("CHANNEL_ID", "")),
+        admin_username=os.getenv("ADMIN_USERNAME", "").strip().lstrip("@") or None,
         timezone=os.getenv("TIMEZONE", "Europe/Moscow").strip() or "Europe/Moscow",
         database_path=Path(os.getenv("DATABASE_PATH", "data/worldcup.sqlite3")),
         daily_users_hour=_get_int("DAILY_USERS_HOUR", 10),

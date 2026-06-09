@@ -8,6 +8,9 @@ from aiogram.types import (
 )
 
 from worldcup_bot.constants import (
+    ADMIN_MENU_CLEAR_DB,
+    ADMIN_MENU_ENTER_RESULT,
+    ADMIN_MENU_PUBLISH_RATING,
     GROUP,
     MAIN_MENU_MY_PREDICTIONS,
     MAIN_MENU_RATING,
@@ -19,15 +22,25 @@ from worldcup_bot.constants import (
 )
 
 
-def main_menu_keyboard() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text=MAIN_MENU_UPCOMING)],
-            [
-                KeyboardButton(text=MAIN_MENU_MY_PREDICTIONS),
-                KeyboardButton(text=MAIN_MENU_RATING),
-            ],
+def main_menu_keyboard(*, is_admin: bool = False) -> ReplyKeyboardMarkup:
+    keyboard = [
+        [KeyboardButton(text=MAIN_MENU_UPCOMING)],
+        [
+            KeyboardButton(text=MAIN_MENU_MY_PREDICTIONS),
+            KeyboardButton(text=MAIN_MENU_RATING),
         ],
+    ]
+    if is_admin:
+        keyboard.extend(
+            [
+                [KeyboardButton(text=ADMIN_MENU_ENTER_RESULT)],
+                [KeyboardButton(text=ADMIN_MENU_PUBLISH_RATING)],
+                [KeyboardButton(text=ADMIN_MENU_CLEAR_DB)],
+            ]
+        )
+
+    return ReplyKeyboardMarkup(
+        keyboard=keyboard,
         resize_keyboard=True,
         input_field_placeholder="Выберите действие",
     )
@@ -73,3 +86,27 @@ def prediction_keyboard(match: dict, selected: str | None = None) -> InlineKeybo
     )
 
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def admin_matches_keyboard(matches: list[dict]) -> InlineKeyboardMarkup:
+    rows = [
+        [
+            InlineKeyboardButton(
+                text=f"#{match['id']} {match['team1']} — {match['team2']}",
+                callback_data=f"admin_result:{match['id']}",
+            )
+        ]
+        for match in matches
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def admin_clear_confirm_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Да, очистить", callback_data="admin_clear:yes"),
+                InlineKeyboardButton(text="Отмена", callback_data="admin_clear:no"),
+            ]
+        ]
+    )
