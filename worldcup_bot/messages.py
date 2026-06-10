@@ -70,7 +70,7 @@ def format_compact_match_datetime(value: str, tz) -> str:
 
 
 def format_match_card(match: dict, tz, user_prediction: str | None = None) -> str:
-    return f"{format_compact_match_datetime(match['kickoff_time'], tz)} {match['team1']} — {match['team2']}"
+    return f"{format_compact_match_datetime(match['kickoff_time'], tz)} | {match['team1']} – {match['team2']}"
 
 
 def format_my_predictions(rows: list[dict], tz=None) -> str:

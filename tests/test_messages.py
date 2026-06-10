@@ -16,17 +16,17 @@ def test_format_match_card_uses_compact_forecast_text():
     tz = ZoneInfo("Europe/Moscow")
     text = format_match_card(
         {
-            "team1": "Мексика",
-            "team2": "ЮАР",
+            "team1": "Южная Корея",
+            "team2": "Чехия",
             "stage": "Групповой этап",
             "match_type": GROUP,
             "group_name": "A",
-            "kickoff_time": "2026-06-11T23:00:00+03:00",
+            "kickoff_time": "2026-06-12T06:00:00+03:00",
         },
         tz,
     )
 
-    assert text == "11 июня, 23:00 Мексика — ЮАР"
+    assert text == "12 июня, 06:00 | Южная Корея – Чехия"
     assert "Стадия:" not in text
     assert "Группа:" not in text
     assert "Начало:" not in text
@@ -50,8 +50,10 @@ def test_prediction_keyboard_uses_short_labels():
         }
     )
 
-    assert [button.text for button in group_keyboard.inline_keyboard[0]] == ["1", "X", "2", "пропустить"]
-    assert [button.text for button in playoff_keyboard.inline_keyboard[0]] == ["1", "2", "пропустить"]
+    assert [button.text for button in group_keyboard.inline_keyboard[0]] == ["1", "X", "2", "skip"]
+    assert group_keyboard.inline_keyboard[0][-1].callback_data == "pred:10:none"
+    assert [button.text for button in playoff_keyboard.inline_keyboard[0]] == ["1", "2", "skip"]
+    assert playoff_keyboard.inline_keyboard[0][-1].callback_data == "pred:11:none"
 
 
 def test_leaderboard_rows_do_not_repeat_rating_word():

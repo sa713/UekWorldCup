@@ -72,7 +72,7 @@ def prediction_keyboard(match: dict, selected: str | None = None) -> InlineKeybo
                 callback_data=f"pred:{match['id']}:{PREDICTION_TEAM2}",
             ),
             InlineKeyboardButton(
-                text=label("пропустить", PREDICTION_NONE),
+                text=label("skip", PREDICTION_NONE),
                 callback_data=f"pred:{match['id']}:{PREDICTION_NONE}",
             ),
         ]
