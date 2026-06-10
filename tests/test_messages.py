@@ -77,6 +77,21 @@ def test_leaderboard_rows_do_not_repeat_rating_word():
 
 
 def test_registration_prompt_contains_updated_intro():
+    paragraphs = REGISTRATION_PROMPT.split("\n\n")
+
+    assert paragraphs == [
+        "Привет!",
+        "Это бот конкурса прогнозов УЭК на матчи Чемпионата мира по футболу 2026.",
+        (
+            "Правила простые – я присылаю ближайшие матчи, ты делаешь прогнозы, раз в сутки "
+            "в канале @uekworldcup я публикую результаты матчей и рейтинг участников конкурса. "
+            "За верный прогноз начисляется 1 балл, за неверный – снимается 1 балл. "
+            "В случае пропуска прогноза (участник не успел сделать до начала матча или нажал вариант skip) "
+            "баллы не начисляются и не снимаются. Победитель конкурса получит приятный сюрприз."
+        ),
+        "Пожалуйста, укажи своё имя или ник для отображения в рейтинге.",
+    ]
     assert "бот конкурса прогнозов УЭК" in REGISTRATION_PROMPT
     assert "@uekworldcup" in REGISTRATION_PROMPT
-    assert "Пожалуйста, укажи своё имя или ник" in REGISTRATION_PROMPT
+    assert "skip" in REGISTRATION_PROMPT
+    assert paragraphs[-1] == "Пожалуйста, укажи своё имя или ник для отображения в рейтинге."
