@@ -28,6 +28,7 @@ from worldcup_bot.keyboards import (
     prediction_keyboard,
 )
 from worldcup_bot.messages import (
+    REGISTRATION_PROMPT,
     format_admin_match_option,
     format_channel_summary,
     format_leaderboard,
@@ -85,7 +86,7 @@ async def cmd_start(message: Message, state: FSMContext, db: Database, config: C
         return
 
     await state.set_state(Registration.waiting_for_name)
-    await message.answer("Привет! Напишите имя участника для рейтинга.")
+    await message.answer(REGISTRATION_PROMPT)
 
 
 @router.message(Command("menu"))

@@ -50,42 +50,35 @@ def prediction_keyboard(match: dict, selected: str | None = None) -> InlineKeybo
     def label(text: str, value: str) -> str:
         return f"{text} ✓" if selected == value else text
 
-    rows = [
-        [
-            InlineKeyboardButton(
-                text=label(match["team1"], PREDICTION_TEAM1),
-                callback_data=f"pred:{match['id']}:{PREDICTION_TEAM1}",
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text=label(match["team2"], PREDICTION_TEAM2),
-                callback_data=f"pred:{match['id']}:{PREDICTION_TEAM2}",
-            )
-        ],
+    row = [
+        InlineKeyboardButton(
+            text=label("1", PREDICTION_TEAM1),
+            callback_data=f"pred:{match['id']}:{PREDICTION_TEAM1}",
+        ),
     ]
 
     if match["match_type"] == GROUP:
-        rows.insert(
-            1,
-            [
-                InlineKeyboardButton(
-                    text=label("Ничья", PREDICTION_DRAW),
-                    callback_data=f"pred:{match['id']}:{PREDICTION_DRAW}",
-                )
-            ],
+        row.append(
+            InlineKeyboardButton(
+                text=label("X", PREDICTION_DRAW),
+                callback_data=f"pred:{match['id']}:{PREDICTION_DRAW}",
+            )
         )
 
-    rows.append(
+    row.extend(
         [
             InlineKeyboardButton(
-                text=label("Не делать прогноз", PREDICTION_NONE),
+                text=label("2", PREDICTION_TEAM2),
+                callback_data=f"pred:{match['id']}:{PREDICTION_TEAM2}",
+            ),
+            InlineKeyboardButton(
+                text=label("пропустить", PREDICTION_NONE),
                 callback_data=f"pred:{match['id']}:{PREDICTION_NONE}",
-            )
+            ),
         ]
     )
 
-    return InlineKeyboardMarkup(inline_keyboard=rows)
+    return InlineKeyboardMarkup(inline_keyboard=[row])
 
 
 def admin_matches_keyboard(matches: list[dict]) -> InlineKeyboardMarkup:

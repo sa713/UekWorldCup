@@ -7,14 +7,39 @@ from worldcup_bot.constants import (
     PREDICTION_TEAM2,
     SHORT_PREDICTION_LABELS,
 )
-from worldcup_bot.timeutils import format_moscow_datetime
+from worldcup_bot.timeutils import format_moscow_datetime, parse_datetime
 
+
+REGISTRATION_PROMPT = (
+    "Привет!\n\n"
+    "Это бот конкурса прогнозов УЭК на матчи Чемпионата мира по футболу 2026.\n"
+    "Правила простые – я присылаю ближайшие матчи, ты делаешь прогнозы, раз в сутки "
+    "в канале @uekworldcup я публикую результаты матчей и рейтинг участников конкурса.\n"
+    "За верный прогноз начисляется 1 балл, за неверный — снимается 1 балл.\n"
+    "Победитель конкурса получит приятный сюрприз.\n\n"
+    "Пожалуйста, укажи своё имя или ник для отображения в рейтинге."
+)
 
 COMPACT_PREDICTION_LABELS = {
     PREDICTION_TEAM1: "победа 1",
     PREDICTION_TEAM2: "победа 2",
     PREDICTION_DRAW: "ничья",
     PREDICTION_NONE: "без прогноза",
+}
+
+MONTH_NAMES = {
+    1: "января",
+    2: "февраля",
+    3: "марта",
+    4: "апреля",
+    5: "мая",
+    6: "июня",
+    7: "июля",
+    8: "августа",
+    9: "сентября",
+    10: "октября",
+    11: "ноября",
+    12: "декабря",
 }
 
 
@@ -39,17 +64,13 @@ def compact_prediction_label(prediction: str | None) -> str:
     return COMPACT_PREDICTION_LABELS.get(prediction, "не выбран")
 
 
+def format_compact_match_datetime(value: str, tz) -> str:
+    dt = parse_datetime(value, tz)
+    return f"{dt.day} {MONTH_NAMES[dt.month]}, {dt:%H:%M}"
+
+
 def format_match_card(match: dict, tz, user_prediction: str | None = None) -> str:
-    lines = [
-        f"{match['team1']} — {match['team2']}",
-        f"Стадия: {match['stage']}",
-    ]
-    if match.get("match_type") == "group" and match.get("group_name"):
-        lines.append(f"Группа: {match['group_name']}")
-    lines.append(f"Начало: {format_moscow_datetime(match['kickoff_time'], tz)} МСК")
-    if user_prediction is not None:
-        lines.append(f"Ваш прогноз: {prediction_label(user_prediction, match)}")
-    return "\n".join(lines)
+    return f"{format_compact_match_datetime(match['kickoff_time'], tz)} {match['team1']} — {match['team2']}"
 
 
 def format_my_predictions(rows: list[dict], tz=None) -> str:
@@ -74,7 +95,7 @@ def format_leaderboard(rows: list[dict]) -> str:
     for index, row in enumerate(rows, start=1):
         lines.append(
             (
-                f"{index}. {row['display_name']} — рейтинг {row['rating']} "
+                f"{index}. {row['display_name']} — {row['rating']} "
                 f"(+{row['positive_points']} / {row['negative_points']}) — "
                 f"{row['bets_count']} ставок"
             )
@@ -114,7 +135,7 @@ def format_channel_summary(results: list[dict], leaderboard: list[dict]) -> str:
         for row in leaderboard:
             lines.append(
                 (
-                    f"{row['display_name']} — рейтинг {row['rating']} "
+                    f"{row['display_name']} — {row['rating']} "
                     f"(+{row['positive_points']} / {row['negative_points']}) — "
                     f"{row['bets_count']} ставок"
                 )

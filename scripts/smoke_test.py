@@ -108,7 +108,7 @@ async def main() -> int:
             for index, row in enumerate(leaderboard, start=1):
                 print(
                     (
-                        f"{index}. {row['display_name']} — рейтинг {row['rating']} "
+                        f"{index}. {row['display_name']} — {row['rating']} "
                         f"(+{row['positive_points']} / {row['negative_points']}) — "
                         f"{row['bets_count']} ставок"
                     )

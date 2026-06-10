@@ -45,6 +45,6 @@ async def test_leaderboard_sorts_by_rating_bets_count_and_registration_date(db):
     assert board[1]["rating"] == 0
     assert board[1]["bets_count"] == 2
     assert board[2]["rating"] == 0
-    assert board[2]["bets_count"] == 1
+    assert board[2]["bets_count"] == 0
     assert board[3]["rating"] == 0
-    assert board[3]["bets_count"] == 1
+    assert board[3]["bets_count"] == 0

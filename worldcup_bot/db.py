@@ -504,8 +504,7 @@ class Database:
             ),
             bet_stats AS (
                 SELECT user_id, COUNT(*) AS bets_count
-                FROM predictions
-                WHERE prediction != 'none'
+                FROM score_events
                 GROUP BY user_id
             )
             SELECT
