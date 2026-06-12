@@ -103,8 +103,7 @@ def format_leaderboard(rows: list[dict]) -> str:
         lines.append(
             (
                 f"{index}. {row['display_name']} — {row['rating']} "
-                f"(+{row['positive_points']} / {row['negative_points']}) — "
-                f"{row['bets_count']} ставок"
+                f"(+{row['positive_points']} / {row['negative_points']})"
             )
         )
     return "\n".join(lines)
@@ -143,8 +142,7 @@ def format_channel_summary(results: list[dict], leaderboard: list[dict]) -> str:
             lines.append(
                 (
                     f"{row['display_name']} — {row['rating']} "
-                    f"(+{row['positive_points']} / {row['negative_points']}) — "
-                    f"{row['bets_count']} ставок"
+                    f"(+{row['positive_points']} / {row['negative_points']})"
                 )
             )
     else:

@@ -109,8 +109,7 @@ async def main() -> int:
                 print(
                     (
                         f"{index}. {row['display_name']} — {row['rating']} "
-                        f"(+{row['positive_points']} / {row['negative_points']}) — "
-                        f"{row['bets_count']} ставок"
+                        f"(+{row['positive_points']} / {row['negative_points']})"
                     )
                 )
             return 0

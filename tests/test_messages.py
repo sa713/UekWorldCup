@@ -56,7 +56,7 @@ def test_prediction_keyboard_uses_short_labels():
     assert playoff_keyboard.inline_keyboard[0][-1].callback_data == "pred:11:none"
 
 
-def test_leaderboard_rows_do_not_repeat_rating_word():
+def test_leaderboard_rows_show_points_without_bets_count():
     rows = [
         {
             "display_name": "Сергей",
@@ -70,10 +70,12 @@ def test_leaderboard_rows_do_not_repeat_rating_word():
     personal_text = format_leaderboard(rows)
     channel_text = format_channel_summary([], rows)
 
-    assert "1. Сергей — 4 (+7 / -3) — 10 ставок" in personal_text
-    assert "Сергей — 4 (+7 / -3) — 10 ставок" in channel_text
+    assert "1. Сергей — 4 (+7 / -3)" in personal_text
+    assert "Сергей — 4 (+7 / -3)" in channel_text
     assert "Сергей — рейтинг" not in personal_text
     assert "Сергей — рейтинг" not in channel_text
+    assert "ставок" not in personal_text
+    assert "ставок" not in channel_text
 
 
 def test_registration_prompt_contains_updated_intro():
