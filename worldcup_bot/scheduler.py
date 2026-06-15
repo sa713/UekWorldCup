@@ -10,7 +10,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from worldcup_bot.config import Config
 from worldcup_bot.db import Database
 from worldcup_bot.keyboards import prediction_keyboard
-from worldcup_bot.messages import format_channel_summary, format_match_card
+from worldcup_bot.messages import format_match_card
+from worldcup_bot.publisher import publish_channel_summary
 from worldcup_bot.timeutils import iso_now, now_in_tz
 
 
@@ -69,10 +70,9 @@ async def publish_daily_summary_job(bot: Bot, db: Database, config: Config) -> N
 
     results = await db.list_results_since(last_summary_at)
     leaderboard = await db.leaderboard()
-    text = format_channel_summary(results, leaderboard)
 
     try:
-        await bot.send_message(config.channel_id, text)
+        await publish_channel_summary(bot, config.channel_id, results, leaderboard)
     except TelegramAPIError:
         logger.exception("Failed to publish channel summary")
         return

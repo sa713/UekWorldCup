@@ -71,7 +71,7 @@ def test_leaderboard_rows_show_points_without_bets_count():
     channel_text = format_channel_summary([], rows)
 
     assert "1. Сергей — 4 (+7 / -3)" in personal_text
-    assert "Сергей — 4 (+7 / -3)" in channel_text
+    assert "Сергей" in channel_text
     assert "Сергей — рейтинг" not in personal_text
     assert "Сергей — рейтинг" not in channel_text
     assert "ставок" not in personal_text

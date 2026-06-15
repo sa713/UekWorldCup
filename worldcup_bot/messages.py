@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from html import escape
+
 from worldcup_bot.constants import (
     PREDICTION_DRAW,
     PREDICTION_NONE,
@@ -48,6 +50,11 @@ MONTH_NAMES = {
     11: "ноября",
     12: "декабря",
 }
+
+CHANNEL_SUMMARY_TITLE = "🏆 Ежедневная сводка"
+CHANNEL_RESULTS_TITLE = "⚽ Результаты матчей"
+CHANNEL_LEADERBOARD_TITLE = "📊 Рейтинг участников"
+LEADERBOARD_TABLE_COLUMNS = ("Место", "Участник", "Очки", "+", "-")
 
 
 def prediction_label(prediction: str | None, match: dict | None = None) -> str:
@@ -113,6 +120,86 @@ def format_result_line(match: dict) -> str:
     return f"- {match['team1']} {match['score']} {match['team2']}"
 
 
+def leaderboard_rows_with_places(rows: list[dict]) -> list[dict]:
+    placed_rows = []
+    previous_rating = None
+    current_place = 0
+    for row in rows:
+        rating = int(row["rating"])
+        if previous_rating is None or rating != previous_rating:
+            current_place += 1
+            previous_rating = rating
+        placed_rows.append(
+            {
+                "place": current_place,
+                "display_name": str(row["display_name"]),
+                "rating": rating,
+                "positive_points": int(row["positive_points"]),
+                "negative_points": abs(int(row["negative_points"])),
+            }
+        )
+    return placed_rows
+
+
+def leaderboard_table_rows(rows: list[dict]) -> list[list[str]]:
+    return [
+        [
+            str(row["place"]),
+            row["display_name"],
+            str(row["rating"]),
+            str(row["positive_points"]),
+            str(row["negative_points"]),
+        ]
+        for row in leaderboard_rows_with_places(rows)
+    ]
+
+
+def format_leaderboard_table_text(rows: list[dict]) -> str:
+    table_rows = [list(LEADERBOARD_TABLE_COLUMNS), *leaderboard_table_rows(rows)]
+    widths = [max(len(row[column_index]) for row in table_rows) for column_index in range(len(table_rows[0]))]
+    return "\n".join(
+        " | ".join(cell.ljust(widths[column_index]) for column_index, cell in enumerate(row))
+        for row in table_rows
+    )
+
+
+def _channel_summary_text_parts(results: list[dict]) -> list[str]:
+    lines = [CHANNEL_SUMMARY_TITLE, "", CHANNEL_RESULTS_TITLE, ""]
+    if results:
+        lines.extend(format_result_line(match) for match in results)
+    else:
+        lines.append("Новых завершенных матчей нет.")
+    lines.extend(["", CHANNEL_LEADERBOARD_TITLE])
+    return lines
+
+
+def _channel_summary_results_html(results: list[dict]) -> str:
+    if not results:
+        return "<p>Новых завершенных матчей нет.</p>"
+    return "<p>" + "<br>".join(escape(format_result_line(match)) for match in results) + "</p>"
+
+
+def _channel_summary_table_html(rows: list[dict]) -> str:
+    if not rows:
+        return "<p>Участников пока нет.</p>"
+
+    header = "".join(f"<th>{escape(column)}</th>" for column in LEADERBOARD_TABLE_COLUMNS)
+    body_rows = []
+    for place, display_name, rating, positive_points, negative_points in leaderboard_table_rows(rows):
+        body_rows.append(
+            (
+                "<tr>"
+                f'<td align="right">{escape(place)}</td>'
+                f"<td>{escape(display_name)}</td>"
+                f'<td align="right">{escape(rating)}</td>'
+                f'<td align="right">{escape(positive_points)}</td>'
+                f'<td align="right">{escape(negative_points)}</td>'
+                "</tr>"
+            )
+        )
+    return "<table bordered striped>" f"<tr>{header}</tr>" + "".join(body_rows) + "</table>"
+
+
 def format_admin_match_option(match: dict, tz) -> str:
     score = match.get("score") or "не внесен"
     return "\n".join(
@@ -126,26 +213,29 @@ def format_admin_match_option(match: dict, tz) -> str:
 
 
 def format_channel_summary(results: list[dict], leaderboard: list[dict]) -> str:
-    lines = ["Ежедневная сводка"]
-
+    lines = _channel_summary_text_parts(results)
     lines.append("")
-    lines.append("Результаты завершенных матчей:")
-    if results:
-        lines.extend(format_result_line(match) for match in results)
-    else:
-        lines.append("Новых завершенных матчей нет.")
-
-    lines.append("")
-    lines.append("Рейтинг участников:")
     if leaderboard:
-        for row in leaderboard:
-            lines.append(
-                (
-                    f"{row['display_name']} — {row['rating']} "
-                    f"(+{row['positive_points']} / {row['negative_points']})"
-                )
-            )
+        lines.append(format_leaderboard_table_text(leaderboard))
     else:
         lines.append("Участников пока нет.")
 
     return "\n".join(lines)
+
+
+def format_channel_summary_fallback_html(results: list[dict], leaderboard: list[dict]) -> str:
+    intro = "\n".join(_channel_summary_text_parts(results))
+    if leaderboard:
+        table = format_leaderboard_table_text(leaderboard)
+        return f"{escape(intro)}\n\n<pre>{escape(table)}</pre>"
+    return f"{escape(intro)}\n\n{escape('Участников пока нет.')}"
+
+
+def format_channel_summary_rich_html(results: list[dict], leaderboard: list[dict]) -> str:
+    return (
+        f"<h3>{escape(CHANNEL_SUMMARY_TITLE)}</h3>"
+        f"<h4>{escape(CHANNEL_RESULTS_TITLE)}</h4>"
+        f"{_channel_summary_results_html(results)}"
+        f"<h4>{escape(CHANNEL_LEADERBOARD_TITLE)}</h4>"
+        f"{_channel_summary_table_html(leaderboard)}"
+    )

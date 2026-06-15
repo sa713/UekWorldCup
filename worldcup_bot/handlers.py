@@ -30,11 +30,11 @@ from worldcup_bot.keyboards import (
 from worldcup_bot.messages import (
     REGISTRATION_PROMPT,
     format_admin_match_option,
-    format_channel_summary,
     format_leaderboard,
     format_match_card,
     format_my_predictions,
 )
+from worldcup_bot.publisher import publish_channel_summary
 from worldcup_bot.timeutils import now_in_tz
 
 
@@ -259,15 +259,16 @@ async def admin_score_and_publish(message: Message, bot: Bot, db: Database, conf
     scored = await db.score_finished_matches()
     since = (now_in_tz(db.tz) - timedelta(days=config.results_lookback_days)).isoformat(timespec="seconds")
     results = await db.list_results_since(since)
-    text = format_channel_summary(results, await db.leaderboard())
 
     try:
-        await bot.send_message(config.channel_id, text)
+        publish_result = await publish_channel_summary(bot, config.channel_id, results, await db.leaderboard())
     except TelegramAPIError as error:
         await message.answer(f"Не удалось опубликовать сводку в канал: {error}")
         return
 
-    await message.answer(f"Готово. Начислено матчей: {len(scored)}. Сводка опубликована в канал.")
+    await message.answer(
+        f"Готово. Начислено матчей: {len(scored)}. Сводка опубликована в канал ({publish_result.mode})."
+    )
 
 
 @router.message(F.text == ADMIN_MENU_CLEAR_DB)
