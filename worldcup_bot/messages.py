@@ -117,7 +117,7 @@ def format_leaderboard(rows: list[dict]) -> str:
 
 
 def format_result_line(match: dict) -> str:
-    return f"- {match['team1']} {match['score']} {match['team2']}"
+    return f"{match['team1']} {match['score']} {match['team2']}"
 
 
 def format_prediction_stats_line(stats: dict[str, int] | None) -> str:
