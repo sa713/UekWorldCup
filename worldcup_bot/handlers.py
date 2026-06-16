@@ -259,9 +259,16 @@ async def admin_score_and_publish(message: Message, bot: Bot, db: Database, conf
     scored = await db.score_finished_matches()
     since = (now_in_tz(db.tz) - timedelta(days=config.results_lookback_days)).isoformat(timespec="seconds")
     results = await db.list_results_since(since)
+    prediction_stats = await db.get_prediction_stats_for_matches([int(match["id"]) for match in results])
 
     try:
-        publish_result = await publish_channel_summary(bot, config.channel_id, results, await db.leaderboard())
+        publish_result = await publish_channel_summary(
+            bot,
+            config.channel_id,
+            results,
+            await db.leaderboard(),
+            prediction_stats,
+        )
     except TelegramAPIError as error:
         await message.answer(f"Не удалось опубликовать сводку в канал: {error}")
         return

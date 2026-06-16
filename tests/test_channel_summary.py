@@ -83,6 +83,32 @@ def test_channel_summary_tables_have_expected_columns():
     assert "<table" in rich_html
 
 
+def test_channel_summary_results_include_prediction_stats_with_blank_line_between_matches():
+    results = [
+        {"id": 1, "team1": "Испания", "score": "0:0", "team2": "Кабо-Верде"},
+        {"id": 2, "team1": "Бельгия", "score": "1:1", "team2": "Египет"},
+    ]
+    stats = {
+        1: {"team1": 50, "draw": 0, "team2": 50},
+        2: {"team1": 75, "draw": 25, "team2": 0},
+    }
+
+    text = format_channel_summary(results, [], stats)
+    rich_html = format_channel_summary_rich_html(results, [], stats)
+
+    assert "- Испания 0:0 Кабо-Верде\n(50 – 0 – 50)\n\n- Бельгия 1:1 Египет\n(75 – 25 – 0)" in text
+    assert "- Испания 0:0 Кабо-Верде<br>(50 – 0 – 50)" in rich_html
+    assert "- Бельгия 1:1 Египет<br>(75 – 25 – 0)" in rich_html
+
+
+def test_channel_summary_results_show_zero_stats_when_predictions_are_absent():
+    results = [{"id": 1, "team1": "Испания", "score": "0:0", "team2": "Кабо-Верде"}]
+
+    text = format_channel_summary(results, [], {})
+
+    assert "(0 – 0 – 0)" in text
+
+
 def test_fallback_table_has_no_medal_emojis():
     text = format_channel_summary([], [leaderboard_row("🅴🆉", 1, 4, -3)])
 

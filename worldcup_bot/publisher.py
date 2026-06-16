@@ -50,8 +50,9 @@ async def publish_channel_summary(
     chat_id: int | str,
     results: list[dict],
     leaderboard: list[dict],
+    prediction_stats: dict[int, dict[str, int]] | None = None,
 ) -> ChannelSummaryPublishResult:
-    rich_html = format_channel_summary_rich_html(results, leaderboard)
+    rich_html = format_channel_summary_rich_html(results, leaderboard, prediction_stats)
     try:
         await send_rich_message(bot, chat_id, rich_html)
         return ChannelSummaryPublishResult(mode="rich")
@@ -60,7 +61,7 @@ async def publish_channel_summary(
 
     await bot.send_message(
         chat_id,
-        format_channel_summary_fallback_html(results, leaderboard),
+        format_channel_summary_fallback_html(results, leaderboard, prediction_stats),
         parse_mode="HTML",
     )
     return ChannelSummaryPublishResult(mode="fallback")

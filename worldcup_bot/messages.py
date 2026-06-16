@@ -120,6 +120,15 @@ def format_result_line(match: dict) -> str:
     return f"- {match['team1']} {match['score']} {match['team2']}"
 
 
+def format_prediction_stats_line(stats: dict[str, int] | None) -> str:
+    stats = stats or {}
+    return (
+        f"({int(stats.get(PREDICTION_TEAM1, 0))} – "
+        f"{int(stats.get(PREDICTION_DRAW, 0))} – "
+        f"{int(stats.get(PREDICTION_TEAM2, 0))})"
+    )
+
+
 def leaderboard_rows_with_places(rows: list[dict]) -> list[dict]:
     placed_rows = []
     previous_rank_key = None
@@ -167,20 +176,43 @@ def format_leaderboard_table_text(rows: list[dict]) -> str:
     )
 
 
-def _channel_summary_text_parts(results: list[dict]) -> list[str]:
+def _prediction_stats_for_match(prediction_stats: dict[int, dict[str, int]] | None, match: dict) -> dict[str, int]:
+    if prediction_stats is None:
+        return {}
+    match_id = match.get("id")
+    if match_id is None:
+        return {}
+    return prediction_stats.get(int(match_id), {})
+
+
+def _channel_summary_text_parts(
+    results: list[dict],
+    prediction_stats: dict[int, dict[str, int]] | None = None,
+) -> list[str]:
     lines = [CHANNEL_SUMMARY_TITLE, "", CHANNEL_RESULTS_TITLE, ""]
     if results:
-        lines.extend(format_result_line(match) for match in results)
+        for index, match in enumerate(results):
+            if index > 0:
+                lines.append("")
+            lines.append(format_result_line(match))
+            lines.append(format_prediction_stats_line(_prediction_stats_for_match(prediction_stats, match)))
     else:
         lines.append("Новых завершенных матчей нет.")
     lines.extend(["", CHANNEL_LEADERBOARD_TITLE])
     return lines
 
 
-def _channel_summary_results_html(results: list[dict]) -> str:
+def _channel_summary_results_html(
+    results: list[dict],
+    prediction_stats: dict[int, dict[str, int]] | None = None,
+) -> str:
     if not results:
         return "<p>Новых завершенных матчей нет.</p>"
-    return "<p>" + "<br>".join(escape(format_result_line(match)) for match in results) + "</p>"
+    blocks = []
+    for match in results:
+        stats_line = format_prediction_stats_line(_prediction_stats_for_match(prediction_stats, match))
+        blocks.append(f"{escape(format_result_line(match))}<br>{escape(stats_line)}")
+    return "".join(f"<p>{block}</p>" for block in blocks)
 
 
 def _channel_summary_table_html(rows: list[dict]) -> str:
@@ -216,8 +248,12 @@ def format_admin_match_option(match: dict, tz) -> str:
     )
 
 
-def format_channel_summary(results: list[dict], leaderboard: list[dict]) -> str:
-    lines = _channel_summary_text_parts(results)
+def format_channel_summary(
+    results: list[dict],
+    leaderboard: list[dict],
+    prediction_stats: dict[int, dict[str, int]] | None = None,
+) -> str:
+    lines = _channel_summary_text_parts(results, prediction_stats)
     lines.append("")
     if leaderboard:
         lines.append(format_leaderboard_table_text(leaderboard))
@@ -227,19 +263,27 @@ def format_channel_summary(results: list[dict], leaderboard: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def format_channel_summary_fallback_html(results: list[dict], leaderboard: list[dict]) -> str:
-    intro = "\n".join(_channel_summary_text_parts(results))
+def format_channel_summary_fallback_html(
+    results: list[dict],
+    leaderboard: list[dict],
+    prediction_stats: dict[int, dict[str, int]] | None = None,
+) -> str:
+    intro = "\n".join(_channel_summary_text_parts(results, prediction_stats))
     if leaderboard:
         table = format_leaderboard_table_text(leaderboard)
         return f"{escape(intro)}\n\n<pre>{escape(table)}</pre>"
     return f"{escape(intro)}\n\n{escape('Участников пока нет.')}"
 
 
-def format_channel_summary_rich_html(results: list[dict], leaderboard: list[dict]) -> str:
+def format_channel_summary_rich_html(
+    results: list[dict],
+    leaderboard: list[dict],
+    prediction_stats: dict[int, dict[str, int]] | None = None,
+) -> str:
     return (
         f"<h3>{escape(CHANNEL_SUMMARY_TITLE)}</h3>"
         f"<h4>{escape(CHANNEL_RESULTS_TITLE)}</h4>"
-        f"{_channel_summary_results_html(results)}"
+        f"{_channel_summary_results_html(results, prediction_stats)}"
         f"<h4>{escape(CHANNEL_LEADERBOARD_TITLE)}</h4>"
         f"{_channel_summary_table_html(leaderboard)}"
     )

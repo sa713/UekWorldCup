@@ -70,9 +70,10 @@ async def publish_daily_summary_job(bot: Bot, db: Database, config: Config) -> N
 
     results = await db.list_results_since(last_summary_at)
     leaderboard = await db.leaderboard()
+    prediction_stats = await db.get_prediction_stats_for_matches([int(match["id"]) for match in results])
 
     try:
-        await publish_channel_summary(bot, config.channel_id, results, leaderboard)
+        await publish_channel_summary(bot, config.channel_id, results, leaderboard, prediction_stats)
     except TelegramAPIError:
         logger.exception("Failed to publish channel summary")
         return
