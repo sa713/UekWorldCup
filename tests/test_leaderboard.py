@@ -6,7 +6,7 @@ from tests.helpers import add_match, finish_match, set_registration_date
 
 
 @pytest.mark.asyncio
-async def test_leaderboard_sorts_by_rating_bets_count_and_registration_date(db):
+async def test_leaderboard_sorts_by_rating_processed_bets_count_and_registration_date(db):
     await db.register_user(3001, "Лучший рейтинг")
     await db.register_user(3002, "Больше ставок")
     await db.register_user(3003, "Раньше зарегистрирован")
@@ -48,3 +48,34 @@ async def test_leaderboard_sorts_by_rating_bets_count_and_registration_date(db):
     assert board[2]["bets_count"] == 0
     assert board[3]["rating"] == 0
     assert board[3]["bets_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_leaderboard_sorts_equal_rating_by_positive_points_before_processed_bets(db):
+    await db.register_user(3101, "Больше верных")
+    await db.register_user(3102, "Больше обработанных")
+
+    first_user_results = ["team1", "team1", "team2", "team2", "team2", "team2"]
+    second_user_results = ["team1", "team2", "team2", "team2"]
+
+    for index, winner in enumerate(first_user_results):
+        match_id = await add_match(db, team1=f"A{index}", team2=f"B{index}")
+        await db.save_prediction(3101, match_id, "team1")
+        await finish_match(db, match_id, score="1:0" if winner == "team1" else "0:1", winner=winner)
+
+    for index, winner in enumerate(second_user_results):
+        match_id = await add_match(db, team1=f"C{index}", team2=f"D{index}")
+        await db.save_prediction(3102, match_id, "team1")
+        await finish_match(db, match_id, score="1:0" if winner == "team1" else "0:1", winner=winner)
+
+    await db.score_finished_matches()
+
+    board = await db.leaderboard()
+
+    assert [row["display_name"] for row in board[:2]] == ["Больше верных", "Больше обработанных"]
+    assert board[0]["rating"] == -2
+    assert board[0]["positive_points"] == 2
+    assert board[0]["bets_count"] == 6
+    assert board[1]["rating"] == -2
+    assert board[1]["positive_points"] == 1
+    assert board[1]["bets_count"] == 4

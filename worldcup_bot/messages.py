@@ -122,20 +122,24 @@ def format_result_line(match: dict) -> str:
 
 def leaderboard_rows_with_places(rows: list[dict]) -> list[dict]:
     placed_rows = []
-    previous_rating = None
+    previous_rank_key = None
     current_place = 0
-    for row in rows:
+    for index, row in enumerate(rows, start=1):
         rating = int(row["rating"])
-        if previous_rating is None or rating != previous_rating:
-            current_place += 1
-            previous_rating = rating
+        positive_points = int(row["positive_points"])
+        negative_points = abs(int(row["negative_points"]))
+        processed_bets_count = positive_points + negative_points
+        rank_key = (rating, positive_points, processed_bets_count)
+        if previous_rank_key is None or rank_key != previous_rank_key:
+            current_place = index
+            previous_rank_key = rank_key
         placed_rows.append(
             {
                 "place": current_place,
                 "display_name": str(row["display_name"]),
                 "rating": rating,
-                "positive_points": int(row["positive_points"]),
-                "negative_points": abs(int(row["negative_points"])),
+                "positive_points": positive_points,
+                "negative_points": negative_points,
             }
         )
     return placed_rows

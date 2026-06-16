@@ -27,18 +27,40 @@ def leaderboard_row(
     }
 
 
-def test_leaderboard_display_places_are_dense_by_rating_only():
+def test_leaderboard_display_places_use_full_rank_key():
     rows = [
-        leaderboard_row("Иван", 5, 5, 0, 3),
-        leaderboard_row("Пётр", 3, 4, -1, 8),
-        leaderboard_row("Анна", 3, 3, 0, 2),
-        leaderboard_row("Сергей", 1, 2, -1, 5),
+        leaderboard_row("Stnbrl", -2, 7, -9),
+        leaderboard_row("🅴🆉", -2, 4, -6),
+        leaderboard_row("Денис", -2, 1, -3),
     ]
 
     placed_rows = leaderboard_rows_with_places(rows)
 
-    assert [row["place"] for row in placed_rows] == [1, 2, 2, 3]
-    assert placed_rows[1]["place"] == placed_rows[2]["place"]
+    assert [row["place"] for row in placed_rows] == [1, 2, 3]
+
+
+def test_leaderboard_display_places_split_equal_rating_by_processed_bets():
+    rows = [
+        leaderboard_row("Больше обработанных", 0, 6, -6),
+        leaderboard_row("Меньше обработанных", 0, 6, -4),
+    ]
+
+    placed_rows = leaderboard_rows_with_places(rows)
+
+    assert [row["place"] for row in placed_rows] == [1, 2]
+
+
+def test_leaderboard_display_places_share_full_tie_and_skip_next_number():
+    rows = [
+        leaderboard_row("Stnbrl", -2, 7, -9),
+        leaderboard_row("Alex", -2, 7, -9),
+        leaderboard_row("Денис", -2, 1, -3),
+    ]
+
+    placed_rows = leaderboard_rows_with_places(rows)
+
+    assert [row["place"] for row in placed_rows] == [1, 1, 3]
+    assert placed_rows[0]["place"] == placed_rows[1]["place"]
 
 
 def test_negative_points_column_is_rendered_without_minus():

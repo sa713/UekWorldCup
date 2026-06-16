@@ -518,7 +518,7 @@ class Database:
             FROM users u
             LEFT JOIN score_stats s ON s.user_id = u.id
             LEFT JOIN bet_stats b ON b.user_id = u.id
-            ORDER BY rating DESC, bets_count DESC, registration_date ASC, id ASC
+            ORDER BY rating DESC, positive_points DESC, bets_count DESC, registration_date ASC, id ASC
             """
         ) as cursor:
             return [dict(row) for row in await cursor.fetchall()]
