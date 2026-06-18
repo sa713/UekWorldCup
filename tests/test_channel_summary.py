@@ -50,8 +50,12 @@ def test_leaderboard_display_places_split_equal_rating_by_processed_bets():
     assert [row["place"] for row in placed_rows] == [1, 2]
 
 
-def test_leaderboard_display_places_share_full_tie_and_skip_next_number():
+def test_leaderboard_display_places_share_full_tie_and_use_dense_next_place():
     rows = [
+        leaderboard_row("Первый", 6, 15, -9),
+        leaderboard_row("Второй", 5, 14, -9),
+        leaderboard_row("Третий", 4, 13, -9),
+        leaderboard_row("Четвертый", 3, 12, -9),
         leaderboard_row("Stnbrl", -2, 7, -9),
         leaderboard_row("Alex", -2, 7, -9),
         leaderboard_row("Денис", -2, 1, -3),
@@ -59,8 +63,8 @@ def test_leaderboard_display_places_share_full_tie_and_skip_next_number():
 
     placed_rows = leaderboard_rows_with_places(rows)
 
-    assert [row["place"] for row in placed_rows] == [1, 1, 3]
-    assert placed_rows[0]["place"] == placed_rows[1]["place"]
+    assert [row["place"] for row in placed_rows] == [1, 2, 3, 4, 5, 5, 6]
+    assert placed_rows[4]["place"] == placed_rows[5]["place"]
 
 
 def test_negative_points_column_is_rendered_without_minus():
@@ -77,6 +81,8 @@ def test_channel_summary_tables_have_expected_columns():
     fallback_text = format_channel_summary([], rows)
     rich_html = format_channel_summary_rich_html([], rows)
 
+    assert "всего: 1" in fallback_text
+    assert "<p>всего: 1</p>" in rich_html
     for column_name in ("Место", "Участник", "Очки", "+", "-"):
         assert column_name in fallback_text
         assert f"<th>{column_name}</th>" in rich_html
@@ -89,17 +95,22 @@ def test_channel_summary_results_include_prediction_stats_with_blank_line_betwee
         {"id": 2, "team1": "Бельгия", "score": "1:1", "team2": "Египет"},
     ]
     stats = {
-        1: {"team1": 50, "draw": 0, "team2": 50},
-        2: {"team1": 75, "draw": 25, "team2": 0},
+        1: {"team1": 19, "draw": 1, "team2": 0},
+        2: {"team1": 13, "draw": 3, "team2": 3},
     }
 
     text = format_channel_summary(results, [], stats)
     rich_html = format_channel_summary_rich_html(results, [], stats)
 
-    assert "Испания 0:0 Кабо-Верде\n(50 – 0 – 50)\n\nБельгия 1:1 Египет\n(75 – 25 – 0)" in text
+    assert (
+        "Испания 0:0 Кабо-Верде\n"
+        "(20: 19 – 1 – 0)\n\n"
+        "Бельгия 1:1 Египет\n"
+        "(19: 13 – 3 – 3)"
+    ) in text
     assert "\n- Испания 0:0 Кабо-Верде" not in text
-    assert "Испания 0:0 Кабо-Верде<br>(50 – 0 – 50)" in rich_html
-    assert "Бельгия 1:1 Египет<br>(75 – 25 – 0)" in rich_html
+    assert "Испания 0:0 Кабо-Верде<br>(20: 19 – 1 – 0)" in rich_html
+    assert "Бельгия 1:1 Египет<br>(19: 13 – 3 – 3)" in rich_html
 
 
 def test_channel_summary_results_show_zero_stats_when_predictions_are_absent():
@@ -107,7 +118,7 @@ def test_channel_summary_results_show_zero_stats_when_predictions_are_absent():
 
     text = format_channel_summary(results, [], {})
 
-    assert "(0 – 0 – 0)" in text
+    assert "(0: 0 – 0 – 0)" in text
 
 
 def test_fallback_table_has_no_medal_emojis():
@@ -144,4 +155,5 @@ async def test_publish_channel_summary_falls_back_to_html_text(monkeypatch):
     assert result.mode == "fallback"
     assert fake_bot.sent_messages[0]["chat_id"] == "@channel"
     assert fake_bot.sent_messages[0]["parse_mode"] == "HTML"
+    assert "всего: 1" in fake_bot.sent_messages[0]["text"]
     assert "<pre>" in fake_bot.sent_messages[0]["text"]

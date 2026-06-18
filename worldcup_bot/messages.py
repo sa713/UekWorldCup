@@ -122,10 +122,14 @@ def format_result_line(match: dict) -> str:
 
 def format_prediction_stats_line(stats: dict[str, int] | None) -> str:
     stats = stats or {}
+    team1_count = int(stats.get(PREDICTION_TEAM1, 0))
+    draw_count = int(stats.get(PREDICTION_DRAW, 0))
+    team2_count = int(stats.get(PREDICTION_TEAM2, 0))
+    total = team1_count + draw_count + team2_count
     return (
-        f"({int(stats.get(PREDICTION_TEAM1, 0))} – "
-        f"{int(stats.get(PREDICTION_DRAW, 0))} – "
-        f"{int(stats.get(PREDICTION_TEAM2, 0))})"
+        f"({total}: {team1_count} – "
+        f"{draw_count} – "
+        f"{team2_count})"
     )
 
 
@@ -133,14 +137,14 @@ def leaderboard_rows_with_places(rows: list[dict]) -> list[dict]:
     placed_rows = []
     previous_rank_key = None
     current_place = 0
-    for index, row in enumerate(rows, start=1):
+    for row in rows:
         rating = int(row["rating"])
         positive_points = int(row["positive_points"])
         negative_points = abs(int(row["negative_points"]))
         processed_bets_count = positive_points + negative_points
         rank_key = (rating, positive_points, processed_bets_count)
         if previous_rank_key is None or rank_key != previous_rank_key:
-            current_place = index
+            current_place += 1
             previous_rank_key = rank_key
         placed_rows.append(
             {
@@ -188,6 +192,7 @@ def _prediction_stats_for_match(prediction_stats: dict[int, dict[str, int]] | No
 def _channel_summary_text_parts(
     results: list[dict],
     prediction_stats: dict[int, dict[str, int]] | None = None,
+    participant_count: int | None = None,
 ) -> list[str]:
     lines = [CHANNEL_SUMMARY_TITLE, "", CHANNEL_RESULTS_TITLE, ""]
     if results:
@@ -199,6 +204,8 @@ def _channel_summary_text_parts(
     else:
         lines.append("Новых завершенных матчей нет.")
     lines.extend(["", CHANNEL_LEADERBOARD_TITLE])
+    if participant_count is not None:
+        lines.append(f"всего: {participant_count}")
     return lines
 
 
@@ -253,7 +260,7 @@ def format_channel_summary(
     leaderboard: list[dict],
     prediction_stats: dict[int, dict[str, int]] | None = None,
 ) -> str:
-    lines = _channel_summary_text_parts(results, prediction_stats)
+    lines = _channel_summary_text_parts(results, prediction_stats, len(leaderboard))
     lines.append("")
     if leaderboard:
         lines.append(format_leaderboard_table_text(leaderboard))
@@ -268,7 +275,7 @@ def format_channel_summary_fallback_html(
     leaderboard: list[dict],
     prediction_stats: dict[int, dict[str, int]] | None = None,
 ) -> str:
-    intro = "\n".join(_channel_summary_text_parts(results, prediction_stats))
+    intro = "\n".join(_channel_summary_text_parts(results, prediction_stats, len(leaderboard)))
     if leaderboard:
         table = format_leaderboard_table_text(leaderboard)
         return f"{escape(intro)}\n\n<pre>{escape(table)}</pre>"
@@ -285,5 +292,6 @@ def format_channel_summary_rich_html(
         f"<h4>{escape(CHANNEL_RESULTS_TITLE)}</h4>"
         f"{_channel_summary_results_html(results, prediction_stats)}"
         f"<h4>{escape(CHANNEL_LEADERBOARD_TITLE)}</h4>"
+        f"<p>{escape(f'всего: {len(leaderboard)}')}</p>"
         f"{_channel_summary_table_html(leaderboard)}"
     )

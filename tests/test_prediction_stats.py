@@ -25,11 +25,11 @@ async def test_prediction_stats_count_real_predictions_and_ignore_none(db):
 
     stats = await db.get_prediction_stats_for_matches([match_id])
 
-    assert stats[match_id] == {"team1": 75, "draw": 25, "team2": 0}
+    assert stats[match_id] == {"team1": 3, "draw": 1, "team2": 0}
 
 
 @pytest.mark.asyncio
-async def test_prediction_stats_truncate_fractional_percentages(db):
+async def test_prediction_stats_return_counts_without_percentages(db):
     match_id = await add_match(db)
     await add_predictions(
         db,
@@ -40,7 +40,7 @@ async def test_prediction_stats_truncate_fractional_percentages(db):
 
     stats = await db.get_prediction_stats_for_matches([match_id])
 
-    assert stats[match_id] == {"team1": 66, "draw": 33, "team2": 0}
+    assert stats[match_id] == {"team1": 2, "draw": 1, "team2": 0}
 
 
 @pytest.mark.asyncio
@@ -72,5 +72,5 @@ async def test_prediction_stats_handle_multiple_matches(db):
 
     stats = await db.get_prediction_stats_for_matches([first_match_id, second_match_id])
 
-    assert stats[first_match_id] == {"team1": 25, "draw": 25, "team2": 50}
-    assert stats[second_match_id] == {"team1": 75, "draw": 25, "team2": 0}
+    assert stats[first_match_id] == {"team1": 1, "draw": 1, "team2": 2}
+    assert stats[second_match_id] == {"team1": 3, "draw": 1, "team2": 0}

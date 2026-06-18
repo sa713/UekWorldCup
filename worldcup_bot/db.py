@@ -304,25 +304,8 @@ class Database:
         ) as cursor:
             rows = [dict(row) for row in await cursor.fetchall()]
 
-        counts_by_match = {
-            match_id: {
-                PREDICTION_TEAM1: 0,
-                PREDICTION_DRAW: 0,
-                PREDICTION_TEAM2: 0,
-            }
-            for match_id in match_ids
-        }
         for row in rows:
-            counts_by_match[int(row["match_id"])][str(row["prediction"])] = int(row["count"])
-
-        for match_id, counts in counts_by_match.items():
-            total = sum(counts.values())
-            if total == 0:
-                continue
-            stats[match_id] = {
-                prediction: count * 100 // total
-                for prediction, count in counts.items()
-            }
+            stats[int(row["match_id"])][str(row["prediction"])] = int(row["count"])
         return stats
 
     async def get_user_prediction(self, telegram_id: int, match_id: int) -> str | None:
