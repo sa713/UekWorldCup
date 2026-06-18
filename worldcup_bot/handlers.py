@@ -29,6 +29,7 @@ from worldcup_bot.keyboards import (
 )
 from worldcup_bot.messages import (
     REGISTRATION_PROMPT,
+    UPCOMING_MATCHES_HEADER,
     format_admin_match_option,
     format_leaderboard,
     format_match_card,
@@ -127,7 +128,7 @@ async def show_upcoming_matches(message: Message, db: Database, config: Config) 
         await message.answer("Ближайших матчей с открытыми прогнозами пока нет.")
         return
 
-    await message.answer("Ближайшие матчи:")
+    await message.answer(UPCOMING_MATCHES_HEADER)
     for match in matches:
         selected = await db.get_user_prediction(message.from_user.id, match["id"])
         await message.answer(

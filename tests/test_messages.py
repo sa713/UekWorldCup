@@ -6,6 +6,7 @@ from worldcup_bot.constants import GROUP, PLAYOFF
 from worldcup_bot.keyboards import prediction_keyboard
 from worldcup_bot.messages import (
     REGISTRATION_PROMPT,
+    UPCOMING_MATCHES_HEADER,
     format_channel_summary,
     format_leaderboard,
     format_match_card,
@@ -30,6 +31,17 @@ def test_format_match_card_uses_compact_forecast_text():
     assert "Стадия:" not in text
     assert "Группа:" not in text
     assert "Начало:" not in text
+
+
+def test_upcoming_matches_header_mentions_channel_and_uses_two_paragraphs():
+    assert UPCOMING_MATCHES_HEADER == (
+        "Результаты и рейтинг – в канале @uekworldcup\n\n"
+        "Ближайшие матчи:"
+    )
+    assert UPCOMING_MATCHES_HEADER.split("\n\n") == [
+        "Результаты и рейтинг – в канале @uekworldcup",
+        "Ближайшие матчи:",
+    ]
 
 
 def test_prediction_keyboard_uses_short_labels():

@@ -10,7 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from worldcup_bot.config import Config
 from worldcup_bot.db import Database
 from worldcup_bot.keyboards import prediction_keyboard
-from worldcup_bot.messages import format_match_card
+from worldcup_bot.messages import UPCOMING_MATCHES_HEADER, format_match_card
 from worldcup_bot.publisher import publish_channel_summary
 from worldcup_bot.timeutils import iso_now, now_in_tz
 
@@ -45,7 +45,7 @@ async def send_daily_upcoming_job(bot: Bot, db: Database, config: Config) -> Non
                 await bot.send_message(chat_id, "Ближайших матчей с открытыми прогнозами пока нет.")
                 continue
 
-            await bot.send_message(chat_id, "Ближайшие матчи на сегодня и ближайшие дни:")
+            await bot.send_message(chat_id, UPCOMING_MATCHES_HEADER)
             for match in matches:
                 selected = await db.get_user_prediction(chat_id, match["id"])
                 await bot.send_message(

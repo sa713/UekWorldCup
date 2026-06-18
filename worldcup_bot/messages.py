@@ -29,6 +29,8 @@ REGISTRATION_PROMPT = (
     "Пожалуйста, укажи своё имя или ник для отображения в рейтинге."
 )
 
+UPCOMING_MATCHES_HEADER = "Результаты и рейтинг – в канале @uekworldcup\n\nБлижайшие матчи:"
+
 COMPACT_PREDICTION_LABELS = {
     PREDICTION_TEAM1: "победа 1",
     PREDICTION_TEAM2: "победа 2",
