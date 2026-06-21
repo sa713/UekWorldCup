@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from worldcup_bot.messages import (
+    TELEGRAM_BLANK_LINE,
     format_channel_summary,
     format_channel_summary_rich_html,
     format_leaderboard_table_text,
@@ -103,14 +104,20 @@ def test_channel_summary_results_include_prediction_stats_with_blank_line_betwee
     rich_html = format_channel_summary_rich_html(results, [], stats)
 
     assert (
-        "Испания 0:0 Кабо-Верде\n"
         "(20: 19 – 1 – 0)\n\n"
-        "Бельгия 1:1 Египет\n"
+        "#2 Бельгия 1:1 Египет"
+    ) not in text
+    assert (
+        "#1 Испания 0:0 Кабо-Верде\n"
+        "(20: 19 – 1 – 0)\n"
+        f"{TELEGRAM_BLANK_LINE}\n"
+        "#2 Бельгия 1:1 Египет\n"
         "(19: 13 – 3 – 3)"
     ) in text
     assert "\n- Испания 0:0 Кабо-Верде" not in text
-    assert "Испания 0:0 Кабо-Верде<br>(20: 19 – 1 – 0)" in rich_html
-    assert "Бельгия 1:1 Египет<br>(19: 13 – 3 – 3)" in rich_html
+    assert "#1 Испания 0:0 Кабо-Верде<br>(20: 19 – 1 – 0)" in rich_html
+    assert f"<p>{TELEGRAM_BLANK_LINE}</p>" in rich_html
+    assert "#2 Бельгия 1:1 Египет<br>(19: 13 – 3 – 3)" in rich_html
 
 
 def test_channel_summary_results_show_zero_stats_when_predictions_are_absent():

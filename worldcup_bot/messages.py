@@ -57,6 +57,7 @@ CHANNEL_SUMMARY_TITLE = "🏆 Ежедневная сводка"
 CHANNEL_RESULTS_TITLE = "⚽ Результаты матчей"
 CHANNEL_LEADERBOARD_TITLE = "📊 Рейтинг участников"
 LEADERBOARD_TABLE_COLUMNS = ("Место", "Участник", "Очки", "+", "-")
+TELEGRAM_BLANK_LINE = "\u200b"
 
 
 def prediction_label(prediction: str | None, match: dict | None = None) -> str:
@@ -119,7 +120,7 @@ def format_leaderboard(rows: list[dict]) -> str:
 
 
 def format_result_line(match: dict) -> str:
-    return f"{match['team1']} {match['score']} {match['team2']}"
+    return f"#{match['id']} {match['team1']} {match['score']} {match['team2']}"
 
 
 def format_prediction_stats_line(stats: dict[str, int] | None) -> str:
@@ -200,7 +201,7 @@ def _channel_summary_text_parts(
     if results:
         for index, match in enumerate(results):
             if index > 0:
-                lines.append("")
+                lines.append(TELEGRAM_BLANK_LINE)
             lines.append(format_result_line(match))
             lines.append(format_prediction_stats_line(_prediction_stats_for_match(prediction_stats, match)))
     else:
@@ -221,7 +222,8 @@ def _channel_summary_results_html(
     for match in results:
         stats_line = format_prediction_stats_line(_prediction_stats_for_match(prediction_stats, match))
         blocks.append(f"{escape(format_result_line(match))}<br>{escape(stats_line)}")
-    return "".join(f"<p>{block}</p>" for block in blocks)
+    separator = f"<p>{escape(TELEGRAM_BLANK_LINE)}</p>"
+    return separator.join(f"<p>{block}</p>" for block in blocks)
 
 
 def _channel_summary_table_html(rows: list[dict]) -> str:
